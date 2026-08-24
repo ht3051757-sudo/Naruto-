@@ -101,12 +101,33 @@ function hienThiTinNhan(tenNguoiGui, noiDungChu) {
     // Tự động cuộn khung chat xuống dưới cùng khi có tin nhắn mới tràn màn hình
     vungChuaChat.scrollTop = vungChuaChat.scrollHeight;
 }
-function vaoSanhChoiGame(userData) {
-    document.getElementById("auth-screen").style.display = "none";
-    document.getElementById("main-container").style.display = "flex";
-    document.getElementById("user-coins").innerText = userData.coins;
-    currentUser = userData.username; 
+// Tìm hàm này trong file chat.js cũ và thay thế bằng đoạn này:
+function guiTinNhanCuaToi() {
+    const khungNhap = document.getElementById("chat-input");
+    if (!khungNhap) return;
 
-    // CHÈN THÊM DÒNG NÀY VÀO ĐỂ BẬT CHAT KHI VÀO GAME
-    batDauKetNoiChat(); 
-}
+    const noiDung = khungNhap.value.trim();
+    if (!noiDung) return;
+
+    // KIỂM TRA LỆNH MUTE TRỰC TIẾP TỪ FIREBASE TÀI KHOẢN HIỆN TẠI
+    // (auth.currentUser.uid là ID của người đang đăng nhập trên máy này)
+    db.collection("users").doc(auth.currentUser.uid).get().then((doc) => {
+        if (doc.exists && doc.data().isMuted === true) {
+            alert("Bạn đang bị khóa chat (MUTE). Không thể gửi tin nhắn!");
+            khungNhap.value = "";
+            return;
+        }
+
+        // Nếu không bị Mute thì gửi tin nhắn đi bình thường như cũ
+        const packet = {
+            type: "chat",
+            sender: currentUser,
+            text: noiDung
+        };
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(packet));
+        }
+        khungNhap.value = "";
+    });
+            }
+            
