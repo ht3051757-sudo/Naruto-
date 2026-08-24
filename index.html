@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Battle: VIP & Chat Edition</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #111;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ */
+        #auth-screen {
+            background: #222;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ff9900;
+            text-align: center;
+            width: 350px;
+            box-shadow: 0 0 20px rgba(255,153,0,0.3);
+        }
+        #auth-screen h2 { color: #ff9900; margin-bottom: 20px; }
+        #auth-screen input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 5px;
+        }
+        #auth-screen button {
+            width: 100%;
+            padding: 10px;
+            background: #ff9900;
+            border: none;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        #auth-screen .toggle-auth {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 15px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* KHUNG CHỨA CHÍNH (KẾT HỢP GAME VÀ CHAT) */
+        #main-container {
+            display: none; /* Ẩn cho đến khi đăng nhập */
+            width: 1150px;
+            display: none;
+            gap: 20px;
+        }
+
+        /* KHU VỰC TRÁI: SẢNH / GAME CHÍNH */
+        #left-area {
+            width: 800px;
+        }
+
+        /* KHU VỰC PHẢI: KHUNG CHAT CỘNG ĐỒNG */
+        #chat-box {
+            width: 330px;
+            background: #1a1a1a;
+            border: 2px solid #444;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 510px;
+            margin-top: 0px;
+        }
+        #chat-title {
+            background: #222;
+            padding: 12px;
+            font-weight: bold;
+            border-bottom: 2px solid #333;
+            color: #ff9900;
+            text-align: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        #chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .msg { background: #262626; padding: 6px 10px; border-radius: 6px; border-left: 3px solid #555; word-break: break-all; }
+        .msg .sender { font-weight: bold; color: #00ffcc; margin-right: 5px; }
+        .msg.system { border-left-color: #ff9900; font-style: italic; color: #ccc; }
+        #chat-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #333;
+            background: #222;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        #chat-input {
+            flex: 1;
+            padding: 8px;
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 4px;
+            outline: none;
+        }
+        #btn-send-chat {
+            padding: 8px 12px;
+            background: #ff9900;
+            color: black;
+            border: none;
+            margin-left: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* GIAO DIỆN SẢNH CHỌN TƯỚNG */
+        #lobby-screen {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            border: 1px solid #444;
+            height: 510px;
+        }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .coin-display { color: #ffd700; font-weight: bold; font-size: 18px; }
+        .char-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .char-card { background: #252525; border: 2px solid #444; border-radius: 8px; padding: 15px; text-align: center; }
+        .char-card.owned { border-color: #00ffcc; }
+        .char-card.vip { border-color: #ff3300; box-shadow: 0 0 10px rgba(255,51,0,0.3); }
+        .char-card h3 { margin-bottom: 8px; font-size: 16px; }
+        .char-card p { font-size: 12px; color: #aaa; }
+        .char-card button {
+            padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 13px;
+        }
+        .char-card .btn-buy { background: #ffd700; color: black; }
+        .char-card .btn-play { background: #00ffcc; color: black; }
+
+        /* MÀN HÌNH GAME CHÍNH */
+        #game-screen { display: none; flex-direction: column; align-items: center; }
+        #hud {
+            width: 100%; display: flex; justify-content: space-between; margin-bottom: 10px;
+            background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px;
+        }
+        .player-stats { width: 45%; }
+        .bar-container { background: #333; width: 100%; height: 12px; border-radius: 10px; margin-bottom: 5px; overflow: hidden; }
+        .hp-bar { width: 100%; height: 100%; background: #ff3333; transition: width 0.1s; }
+        .mp-bar { width: 50%; height: 100%; background: #3399ff; transition: width 0.1s; }
+        
+        #game-wrapper { position: relative; width: 800px; height: 350px; }
+        canvas { background: linear-gradient(to bottom, #1a0c2e, #4a154b); border: 4px solid #444; border-radius: 8px; width: 100%; height: 100%; }
+        
+        #controls-guide {
+            width: 100%; margin-top: 10px; background: #222; padding: 10px; border-radius: 8px;
+            font-size: 12px; display: flex; justify-content: space-around; border: 1px solid #333;
+        }
+        span.key { background: #444; padding: 1px 5px; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="auth-screen">
+        <h2 id="auth-title">Đăng Nhập Game</h2>
+        <input type="text" id="auth-user" placeholder="Tên tài khoản...">
+        <input type="password" id="auth-pass" placeholder="Mật khẩu...">
+        <button id="btn-auth-submit" onclick="handleAuth()">Vào Game</button>
+        <div class="toggle-auth" id="auth-toggle" onclick="toggleAuthMode()">Chưa có tài khoản? Đăng ký ngay</div>
+    </div>
+
+    <!-- KHUNG CHỨA TRÒ CHƠI KÈM CHAT CỘNG ĐỒNG -->
+    <div id="main-container">
+        
+        <!-- KHU VỰC TRÁI: CHỨA GAME HOẶC LOBBY -->
+        <div id="left-area">
+            
+            <!-- 2A. MÀN HÌNH LOBBY (CHỌN TƯỚNG / CỬA HÀNG) -->
+            <div id="lobby-screen">
+                <div class="header-bar">
+                    <h2>Khu Vực Chọn Tướng</h2>
+                    <div class="coin-display">Số Xu: <span id="user-coins">0</span> 🪙</div>
+                </div>
+                <div class="char-grid">
+                    <div class="char-card owned" id="card-naruto">
+                        <h3>Naruto (Mặc định)</h3>
+                        <p>Skill: Đại chiêu Rasengan cực đại</p>
+                        <button class="btn-play" onclick="selectCharacter('Naruto')">Chọn đấu</button>
+                    </div>
+                    <div class="char-card" id="card-goku">
+                        <h3>Goku (Anime Khác)</h3>
+                        <p>Skill: Đấm liên hoàn & Kamehameha</p>
+                        <div id="status-goku"><button class="btn-buy" onclick="buyCharacter('Goku', 100)">Mua: 100 Xu</button></div>
+                    </div>
+                    <div class="char-card vip" id="card-sasuke">
+                        <h3>Sasuke (SIÊU VIP)</h3>
+                        <p>Máu trâu + Tốc độ + Chidori Sấm Sét</p>
+                        <div id="status-sasuke"><button class="btn-buy" onclick="buyCharacter('Sasuke', 500)">Mua: 500 Xu</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2B. MÀN HÌNH CHIẾN ĐẤU CANVASES -->
+            <div id="game-screen">
+                <div id="hud">
+                    <div class="player-stats">
+                        <div style="margin-bottom:3px;"><strong id="p1-display-name">Naruto</strong> (Bạn) - <span id="p1-action">Đứng yên</span></div>
+                        <div class="bar-container"><div class="hp-bar" id="p1-hp"></div></div>
+                        <div class="bar-container"><div class="mp-bar" id="p1-mp"></div></div>
+                    </div>
+                    <div class="player-stats" style="text-align: right;">
+                        <div style="margin-bottom:3px;"><span id="p2-action">Đứng yên</span> - <strong>Madara (MÁY)</strong></div>
+                        <div class="bar-container"><div class="hp-bar" id="p2-hp"></div></div>
+                        <div class="bar-container"><div class="mp-bar" id="p2-mp"></div></div>
+                    </div>
+                </div>
+                <div id="game-wrapper">
+                    <canvas id="gameCanvas" width="800" height="350"></canvas>
+                </div>
+                <div id="controls-guide">
+  
