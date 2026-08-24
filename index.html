@@ -248,4 +248,47 @@
     <!-- NHÚNG FILE ADMIN VÀO ĐÂY -->
     <script src="admin.js"></script> 
                 </body>
+                        <!-- BƯỚC 1: BẮT BUỘC PHẢI NHÚNG ĐỦ 3 DÒNG THƯ VIỆN NÀY ĐỂ CHẠY ĐĂNG NHẬP -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+
+    <!-- BƯỚC 2: CÁC FILE CODE CỦA BẠN (ĐẢM BẢO ĐÃ ĐẶT CHUNG MỘT THƯ MỤC) -->
+    <script src="auth.js"></script>
+    <script src="chat.js"></script>
+    <script src="game.js"></script>
+    <script src="admin.js"></script>
+
+    <!-- BƯỚC 3: ĐOẠN CODE KÍCH HOẠT NÚT BẤM TRÊN GIAO DIỆN -->
+    <script>
+        // Hàm xử lý khi người chơi bấm nút "Vào Game" trên màn hình
+        function handleAuth() {
+            // Lấy dữ liệu người dùng gõ vào 2 ô Input
+            const taiKhoan = document.getElementById("auth-user").value.trim();
+            const matKhau = document.getElementById("auth-pass").value.trim();
+
+            if (!taiKhoan || !matKhau) {
+                alert("Vui lòng nhập đầy đủ Tài khoản và Mật khẩu!");
+                return;
+            }
+
+            // Kiểm tra xem giao diện đang ở chế độ Đăng Ký hay Đăng Nhập
+            if (isRegisterMode) {
+                // Định dạng Email ảo tự động từ tài khoản để Firebase Auth hiểu và chấp nhận
+                // (Vì Firebase Auth bắt buộc tài khoản phải có dạng email@domain.com)
+                const emailAo = taiKhoan.includes("@") ? taiKhoan : `${taiKhoan}@game.com`;
+                
+                // Gọi hàm đăng ký từ file auth.js sang làm việc
+                dangKyTaiKhoan(emailAo, matKhau, taiKhoan);
+            } else {
+                const emailAo = taiKhoan.includes("@") ? taiKhoan : `${taiKhoan}@game.com`;
+                
+                // Gọi hàm đăng nhập từ file auth.js sang làm việc
+                dangNhapTaiKhoan(emailAo, matKhau);
+            }
+        }
+    </script>
+</body>
+                </html>
+                    
                     
